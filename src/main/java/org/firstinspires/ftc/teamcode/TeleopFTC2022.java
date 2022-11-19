@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -75,11 +76,15 @@ public class TeleopFTC2022 extends OpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-
+    private DcMotor liftMotor = null;
+    private Servo armServo = null;
+    private Servo leftClawServo = null;
+    private Servo rightClawServo = null;
+    private boolean bpressed;
+//    private boolean
+    double pos = 0.5;
     @Override
     public void init() {
-
-        telemetry.addData("Status", "Initialized");
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -88,6 +93,10 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive = hardwareMap.get(DcMotor.class, "left_BackDrive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_FrontDrive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_BackDrive");
+        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+        armServo = hardwareMap.get(Servo.class, "armServo");
+        leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
+        rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -96,10 +105,13 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-
-        // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
-
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightClawServo.setDirection(Servo.Direction.REVERSE);
+        pos = 0.75;
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -123,6 +135,7 @@ public class TeleopFTC2022 extends OpMode {
      */
     @Override
     public void loop() {
+
         // run until the end of the match (driver presses STOP)
         double max;
 
@@ -137,6 +150,7 @@ public class TeleopFTC2022 extends OpMode {
         double rightFrontPower = axial - lateral - yaw;
         double leftBackPower = axial - lateral + yaw;
         double rightBackPower = axial + lateral - yaw;
+        double liftMotorPower;
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
@@ -149,12 +163,47 @@ public class TeleopFTC2022 extends OpMode {
             rightFrontPower /= max;
             leftBackPower /= max;
             rightBackPower /= max;
-
         }
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        if (gamepad2.right_bumper){
+            liftMotorPower = 1.0;
+        }else if (gamepad2.left_bumper){
+            liftMotorPower = -1.0;
+        } else{
+            liftMotorPower = 0.0;
+        }
+//        if (gamepad2.right_stick_button){
+//            leftClawServo.setPosition(0.0);
+//        }
+//        if (gamepad2.left_stick_button){
+//            leftClawServo.setPosition(.5);
+//        }
+        if (gamepad2.right_stick_button){
+            pos += 0.00025;
+            pos = Math.min(pos, 1.0);
+        }
+        if (gamepad2.left_stick_button){
+            pos -= 0.00025;
+            pos = Math.max(pos, 0.0);
+        }
+
+
+        leftClawServo.setPosition(pos);
+
+        rightClawServo.setPosition(pos);
+
         leftFrontDrive.setPower(leftFrontPower);
         rightFrontDrive.setPower(rightFrontPower);
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
+        liftMotor.setPower(liftMotorPower);
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+//        telemetry.addData("Status", "liftMotor: " +   liftMotor.getCurrentPosition());
+        telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
+        telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
+        telemetry.addData("Arm Servo Position", armServo.getPosition());
+        telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
+        telemetry.addData("pos value", pos);
+
+
     }
 }
