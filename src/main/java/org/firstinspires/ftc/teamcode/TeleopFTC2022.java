@@ -83,6 +83,7 @@ public class TeleopFTC2022 extends OpMode {
     private boolean bpressed;
 //    private boolean
     double pos = 0.5;
+    double armPos = 0.5;
     @Override
     public void init() {
 
@@ -110,8 +111,11 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         rightClawServo.setDirection(Servo.Direction.REVERSE);
-        pos = 0.75;
+        armServo.setDirection(Servo.Direction.REVERSE);
+        pos = 0.77799999999;
+        armPos = 0.49;
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -171,25 +175,30 @@ public class TeleopFTC2022 extends OpMode {
         } else{
             liftMotorPower = 0.0;
         }
-//        if (gamepad2.right_stick_button){
-//            leftClawServo.setPosition(0.0);
-//        }
-//        if (gamepad2.left_stick_button){
-//            leftClawServo.setPosition(.5);
-//        }
-        if (gamepad2.right_stick_button){
-            pos += 0.00025;
+
+        if (gamepad2.circle){
+            pos = 0.77799999999;
             pos = Math.min(pos, 1.0);
         }
-        if (gamepad2.left_stick_button){
-            pos -= 0.00025;
+        if (gamepad2.square){
+            pos = 0.5;
             pos = Math.max(pos, 0.0);
         }
 
+        if(gamepad2.dpad_right){
+            armPos = 0.472;
+        }
+        if(gamepad2.dpad_up){
+            armPos = 0.9134999999;
+
+        }
+        if(gamepad2.dpad_down){
+            armPos = 0.0335;
+        }
 
         leftClawServo.setPosition(pos);
-
         rightClawServo.setPosition(pos);
+        armServo.setPosition(armPos);
 
         leftFrontDrive.setPower(leftFrontPower);
         rightFrontDrive.setPower(rightFrontPower);
