@@ -190,7 +190,6 @@ public class TeleopFTC2022 extends OpMode {
         }
         if(gamepad2.dpad_up){
             armPos = 0.9134999999;
-
         }
         if(gamepad2.dpad_down){
             armPos = 0.0335;
