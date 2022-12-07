@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -37,6 +38,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 /**
  * This file contains an example of a Linear "OpMode".
@@ -80,10 +85,16 @@ public class TeleopFTC2022 extends OpMode {
     private Servo armServo = null;
     private Servo leftClawServo = null;
     private Servo rightClawServo = null;
-    private boolean bpressed;
-//    private boolean
-    double pos = 0.5;
-    double armPos = 0.5;
+    BNO055IMU imu;
+    Orientation angles;
+    //    private boolean
+    private double pos = 0.5;
+    private double armPos = 0.5;
+
+    private boolean rightBumpPreviouslyPressed = false;
+    private boolean slow = false;
+    private double denom = 1.11;
+
     @Override
     public void init() {
 
@@ -98,7 +109,11 @@ public class TeleopFTC2022 extends OpMode {
         armServo = hardwareMap.get(Servo.class, "armServo");
         leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
         rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
-
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
@@ -111,11 +126,20 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightClawServo.setDirection(Servo.Direction.REVERSE);
         armServo.setDirection(Servo.Direction.REVERSE);
         pos = 0.77799999999;
-        armPos = 0.49;
+        armPos = 0.0335;
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -154,7 +178,9 @@ public class TeleopFTC2022 extends OpMode {
         double rightFrontPower = axial - lateral - yaw;
         double leftBackPower = axial - lateral + yaw;
         double rightBackPower = axial + lateral - yaw;
-        double liftMotorPower;
+        double liftMotorPower = 0;
+
+        boolean rightBumpPressed = gamepad1.right_bumper;
 
         // Normalize the values so no wheel power exceeds 100%
         // This ensures that the robot maintains the desired motion.
@@ -168,50 +194,82 @@ public class TeleopFTC2022 extends OpMode {
             leftBackPower /= max;
             rightBackPower /= max;
         }
-        if (gamepad2.right_bumper){
-            liftMotorPower = 1.0;
-        }else if (gamepad2.left_bumper){
-            liftMotorPower = -1.0;
-        } else{
-            liftMotorPower = 0.0;
+
+        if(rightBumpPressed && !rightBumpPreviouslyPressed){
+            slow = !slow;
+        }
+        if(slow){
+            denom = 2;
+        }else {
+            denom = 1.11;
         }
 
-        if (gamepad2.circle){
+        // lift up/down
+        if (gamepad2.right_bumper) {
+            liftMotorPower = 1.0;
+        }
+        if (gamepad2.left_bumper) {
+            liftMotorPower = -1.0;
+        }
+
+            // claw open/close
+        if (gamepad2.circle) {
             pos = 0.77799999999;
             pos = Math.min(pos, 1.0);
         }
-        if (gamepad2.square){
-            pos = 0.5;
+        if (gamepad2.square) {
+            pos = 0.45;
             pos = Math.max(pos, 0.0);
         }
 
-        if(gamepad2.dpad_right){
-            armPos = 0.472;
+        //arm Position presets
+            if (gamepad2.dpad_right || gamepad2.dpad_left) {
+                armPos = 0.472;
+            }
+            if (gamepad2.dpad_up) {
+                armPos = 0.910;
+                armPos = Math.min(armPos, 1.0);
+            }
+            if (gamepad2.dpad_down) {
+                armPos = 0.0335;
+                armPos = Math.max(armPos, 0.0);
+            }
+
+            // lift motor presets
+            if (gamepad2.a) {
+                liftMotor.setTargetPosition(1750);
+                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                liftMotor.setPower(1.0);
+            }
+            if (gamepad2.left_trigger >= 0.75) {
+                liftMotor.setTargetPosition(3700);
+                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                liftMotor.setPower(1.0);
+            }
+            if (gamepad2.right_trigger >= 0.75) {
+                liftMotor.setTargetPosition(5528);
+                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                liftMotor.setPower(1.0);
+            }
+
+
+            leftClawServo.setPosition(pos);
+            rightClawServo.setPosition(pos);
+            armServo.setPosition(armPos);
+
+            liftMotor.setPower(liftMotorPower);
+            leftFrontDrive.setPower(leftFrontPower / denom);
+            rightFrontDrive.setPower(rightFrontPower / denom);
+            leftBackDrive.setPower(leftBackPower / denom);
+            rightBackDrive.setPower(rightBackPower / denom);
+
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
+//        telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
+//        telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
+//        telemetry.addData("Arm Servo Position", armServo.getPosition());
+            //telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
+            telemetry.addData("pos value", pos);
+            telemetry.addData("Slow Mode", slow);
         }
-        if(gamepad2.dpad_up){
-            armPos = 0.9134999999;
-        }
-        if(gamepad2.dpad_down){
-            armPos = 0.0335;
-        }
-
-        leftClawServo.setPosition(pos);
-        rightClawServo.setPosition(pos);
-        armServo.setPosition(armPos);
-
-        leftFrontDrive.setPower(leftFrontPower);
-        rightFrontDrive.setPower(rightFrontPower);
-        leftBackDrive.setPower(leftBackPower);
-        rightBackDrive.setPower(rightBackPower);
-        liftMotor.setPower(liftMotorPower);
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-//        telemetry.addData("Status", "liftMotor: " +   liftMotor.getCurrentPosition());
-        telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
-        telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
-        telemetry.addData("Arm Servo Position", armServo.getPosition());
-        telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
-        telemetry.addData("pos value", pos);
-
-
     }
-}
