@@ -211,7 +211,7 @@ public class TeleopFTC2022 extends OpMode {
             slow = !slow;
         }
         if(slow){
-            denom = 2;
+            denom = 4;
         }else {
             denom = 1.11;
         }
@@ -221,7 +221,11 @@ public class TeleopFTC2022 extends OpMode {
             liftMotorPower = 1.0;
         }
         if (gamepad2.left_bumper) {
-            liftMotorPower = -1.0;
+            if (liftMotor.getCurrentPosition() <= 0){
+                liftMotorPower=0.0;
+            }else{
+                liftMotorPower=-1.0;
+            }
         }
 
             // claw open/close
@@ -246,6 +250,8 @@ public class TeleopFTC2022 extends OpMode {
             armPos = backArmPos;
             armPos = Math.max(armPos, 0.0);
         }
+
+
         // lift motor presets
 //        if (gamepad2.a) {
 //            while(liftMotor.getCurrentPosition()<1750){
