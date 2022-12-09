@@ -87,13 +87,19 @@ public class TeleopFTC2022 extends OpMode {
     private Servo rightClawServo = null;
     BNO055IMU imu;
     Orientation angles;
-    //    private boolean
-    private double pos = 0.5;
+
     private double armPos = 0.5;
+    private double middleArmPos = 0.472;
+    private double backArmPos = 0.0335;
+    private double frontArmPos = 0.910;
 
     private boolean rightBumpPreviouslyPressed = false;
     private boolean slow = false;
     private double denom = 1.11;
+
+    private double clawPos = 0.5;
+    private double openClawPos = 0.77799999;
+    private double closedClawPos = 0.45;
 
     @Override
     public void init() {
@@ -109,6 +115,7 @@ public class TeleopFTC2022 extends OpMode {
         armServo = hardwareMap.get(Servo.class, "armServo");
         leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
         rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
+
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         imu = hardwareMap.get(BNO055IMU.class, "imu");
@@ -121,25 +128,30 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         rightClawServo.setDirection(Servo.Direction.REVERSE);
         armServo.setDirection(Servo.Direction.REVERSE);
-        pos = 0.77799999999;
-        armPos = 0.0335;
+
+        clawPos = openClawPos;
+        armPos = backArmPos;
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -214,62 +226,59 @@ public class TeleopFTC2022 extends OpMode {
 
             // claw open/close
         if (gamepad2.circle) {
-            pos = 0.77799999999;
-            pos = Math.min(pos, 1.0);
+            clawPos = openClawPos;
+            clawPos = Math.min(clawPos, 1.0);
         }
         if (gamepad2.square) {
-            pos = 0.45;
-            pos = Math.max(pos, 0.0);
+            clawPos = closedClawPos;
+            clawPos = Math.max(clawPos, 0.0);
         }
 
         //arm Position presets
-            if (gamepad2.dpad_right || gamepad2.dpad_left) {
-                armPos = 0.472;
-            }
-            if (gamepad2.dpad_up) {
-                armPos = 0.910;
-                armPos = Math.min(armPos, 1.0);
-            }
-            if (gamepad2.dpad_down) {
-                armPos = 0.0335;
-                armPos = Math.max(armPos, 0.0);
-            }
+        if (gamepad2.dpad_right || gamepad2.dpad_left) {
+            armPos = middleArmPos;
+        }
+        if (gamepad2.dpad_up) {
+            armPos = frontArmPos;
+            armPos = Math.min(armPos, 1.0);
+        }
+        if (gamepad2.dpad_down) {
+            armPos = backArmPos;
+            armPos = Math.max(armPos, 0.0);
+        }
+        // lift motor presets
+//        if (gamepad2.a) {
+//            while(liftMotor.getCurrentPosition()<1750){
+//                liftMotor.setPower(1.0);
+//            }
+//        }
+//        if (gamepad2.left_trigger >= 0.75) {
+//            liftMotor.setTargetPosition(3700);
+//            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            liftMotor.setPower(1.0);
+//        }
+//        if (gamepad2.right_trigger >= 0.75) {
+//            liftMotor.setTargetPosition(5528);
+//            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            liftMotor.setPower(1.0);
+//        }
 
-            // lift motor presets
-            if (gamepad2.a) {
-                liftMotor.setTargetPosition(1750);
-                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftMotor.setPower(1.0);
-            }
-            if (gamepad2.left_trigger >= 0.75) {
-                liftMotor.setTargetPosition(3700);
-                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftMotor.setPower(1.0);
-            }
-            if (gamepad2.right_trigger >= 0.75) {
-                liftMotor.setTargetPosition(5528);
-                liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                liftMotor.setPower(1.0);
-            }
+        leftClawServo.setPosition(clawPos);
+        rightClawServo.setPosition(clawPos);
+        armServo.setPosition(armPos);
 
-
-            leftClawServo.setPosition(pos);
-            rightClawServo.setPosition(pos);
-            armServo.setPosition(armPos);
-
-            liftMotor.setPower(liftMotorPower);
-            leftFrontDrive.setPower(leftFrontPower / denom);
-            rightFrontDrive.setPower(rightFrontPower / denom);
-            leftBackDrive.setPower(leftBackPower / denom);
-            rightBackDrive.setPower(rightBackPower / denom);
-
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
-//        telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
-//        telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
-//        telemetry.addData("Arm Servo Position", armServo.getPosition());
-            //telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
-            telemetry.addData("pos value", pos);
-            telemetry.addData("Slow Mode", slow);
+        liftMotor.setPower(liftMotorPower);
+        leftFrontDrive.setPower(leftFrontPower / denom);
+        rightFrontDrive.setPower(rightFrontPower / denom);
+        leftBackDrive.setPower(leftBackPower / denom);
+        rightBackDrive.setPower(rightBackPower / denom);
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
+        // telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
+        //telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
+        //telemetry.addData("Arm Servo Position", armServo.getPosition());
+        //telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
+        telemetry.addData("pos value", clawPos);
+        telemetry.addData("Slow Mode", slow);
         }
     }
