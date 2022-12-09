@@ -117,10 +117,10 @@ public class TensorFlowDetection extends OpMode {
     private boolean middle = true;
     private boolean left = false;
     private boolean right = false;
-    private double TicksPerRev = 1425.1;
-    private double WheelDiameter = 3.75;
-    private double WheelCircumference = WheelDiameter * Math.PI;
-    private int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
+    private final double TicksPerRev = 1425.1;
+    private final double WheelDiameter = 3.75;
+    private final double WheelCircumference = WheelDiameter * Math.PI;
+    private final int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
     private int pos = 2;
     @Override
     public void init() {
@@ -236,26 +236,32 @@ public class TensorFlowDetection extends OpMode {
 //        }
         switch (pos){
             case 1:
-                driveStraightForInches(30);
+                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
                 mode(DcMotor.RunMode.RUN_TO_POSITION);
-                break;
-            case 2:
-                driveStraightForInches(30);
-                if (angles.firstAngle <= 90){
+                power(0.2, 0.2);
+                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
                     power(0.2, -0.2);
                 }
+                break;
+            case 2:
+//
+                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
+                mode(DcMotor.RunMode.RUN_TO_POSITION);
+                power(0.2, 0.2);
+                break;
         }
-        driveStraightForInches(12);
+//        driveStraightForInches(12);
 
         telemetry.addData("going to middle", middle);
         telemetry.addData("going to left", left);
         telemetry.addData("going to right", right);
-//        telemetry.addData("Right Encoder", rightDrive.getCurrentPosition());
-//        telemetry.addData("Left Encoder", .getCurrentPosition());
+        telemetry.addData("Right Encoder", rightFront.getCurrentPosition());
+        telemetry.addData("Left Encoder", leftFront.getCurrentPosition());
         telemetry.addData("runtime", runtime.toString());
         telemetry.addData("heading", angles.firstAngle);
         telemetry.addData("pitch", angles.secondAngle);
         telemetry.addData("roll", angles.thirdAngle);
+        telemetry.addData("pos", pos);
 //        telemetry.update();
     }
     @Override
@@ -292,13 +298,21 @@ public class TensorFlowDetection extends OpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
+    private void setTargetPos(int left, int right){
+        leftFront.setTargetPosition(left);
+        leftBack.setTargetPosition(left);
+        rightBack.setTargetPosition(right);
+        rightFront.setTargetPosition(right);
+        telemetry.addData("Target Pos of left encoders", left);
+        telemetry.addData("target Pos of right encoders", right);
+    }
 
     private void driveStraightForInches(double inches){
         leftFront.setTargetPosition((int)(TicksPerInch * inches));
         leftBack.setTargetPosition((int)(TicksPerInch * inches));
         rightFront.setTargetPosition((int)(TicksPerInch * inches));
         rightBack.setTargetPosition((int)(TicksPerInch * inches));
-        telemetry.addData("Target position of encoders", TicksPerInch * inches);
+//        telemetry.addData("Target position of encoders", TicksPerInch * inches);
     }
     private void power(double left, double right){
         leftFront.setPower(left);
