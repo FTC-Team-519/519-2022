@@ -215,6 +215,7 @@ public class TeleopFTC2022 extends OpMode {
         }else {
             denom = 1.11;
         }
+        rightBumpPreviouslyPressed = gamepad1.right_bumper;
 
         // lift up/down
         if (gamepad2.right_bumper) {
