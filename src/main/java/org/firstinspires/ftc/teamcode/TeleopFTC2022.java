@@ -30,14 +30,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -61,7 +58,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  * <p>
  * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
  * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
+ * 3) Yaw:      Rotating Clockwise and counterclockwise    Right-joystick Right and Left
  * <p>
  * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
  * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
@@ -98,8 +95,8 @@ public class TeleopFTC2022 extends OpMode {
     private double denom = 1.11;
 
     private double clawPos = 0.5;
-    private double openClawPos = 0.77799999;
-    private double closedClawPos = 0.45;
+    private static final double OPEN_CLAW_POS = 0.77799999;
+    private static final double CLOSED_CLAW_POS = 0.45;
 
     @Override
     public void init() {
@@ -150,7 +147,7 @@ public class TeleopFTC2022 extends OpMode {
         rightClawServo.setDirection(Servo.Direction.REVERSE);
         armServo.setDirection(Servo.Direction.REVERSE);
 
-        clawPos = openClawPos;
+        clawPos = OPEN_CLAW_POS;
         armPos = backArmPos;
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -206,7 +203,7 @@ public class TeleopFTC2022 extends OpMode {
             leftBackPower /= max;
             rightBackPower /= max;
         }
-
+        // slow mode on/off
         if(rightBumpPressed && !rightBumpPreviouslyPressed){
             slow = !slow;
         }
@@ -231,11 +228,11 @@ public class TeleopFTC2022 extends OpMode {
 
             // claw open/close
         if (gamepad2.circle) {
-            clawPos = openClawPos;
+            clawPos = OPEN_CLAW_POS;
             clawPos = Math.min(clawPos, 1.0);
         }
         if (gamepad2.square) {
-            clawPos = closedClawPos;
+            clawPos = CLOSED_CLAW_POS;
             clawPos = Math.max(clawPos, 0.0);
         }
 
@@ -281,8 +278,8 @@ public class TeleopFTC2022 extends OpMode {
         rightBackDrive.setPower(rightBackPower / denom);
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
-        // telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
-        //telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
+        telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
+        telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
         //telemetry.addData("Arm Servo Position", armServo.getPosition());
         //telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
         telemetry.addData("pos value", clawPos);
