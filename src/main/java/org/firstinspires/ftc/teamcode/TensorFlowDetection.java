@@ -122,6 +122,7 @@ public class TensorFlowDetection extends OpMode {
     private final double WheelCircumference = WheelDiameter * Math.PI;
     private final int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
     private int pos = 2;
+    private int counter = 0;
     @Override
     public void init() {
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
@@ -180,7 +181,7 @@ public class TensorFlowDetection extends OpMode {
                     double row = (recognition.getTop() + recognition.getBottom()) / 2;
                     double width = Math.abs(recognition.getRight() - recognition.getLeft());
                     double height = Math.abs(recognition.getTop() - recognition.getBottom());
-
+                    telemetry.addData("image", recognition.getLabel());
                     if (recognition.getLabel().equals("1 Bolt")){
                         left = true;
                         middle = false;
@@ -189,7 +190,7 @@ public class TensorFlowDetection extends OpMode {
                     }else if (recognition.getLabel().equals("3 Panel")){
                         left = false;
                         middle = false;
-                        right = true;
+                       right = true;
                         pos = 3;
                     }
                 }
@@ -234,22 +235,72 @@ public class TensorFlowDetection extends OpMode {
 
 //            }
 //        }
-        switch (pos){
+        switch (pos) {
             case 1:
-                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
-                mode(DcMotor.RunMode.RUN_TO_POSITION);
-                power(0.2, 0.2);
-                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
-                    power(0.2, -0.2);
+                switch (counter) {
+                    case 0:
+                        setTargetPos(-TicksPerInch * 15, TicksPerInch * 15);
+//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        power(0.2, 0.2);
+                        if (6 <= (runtime.seconds())) {
+                            counter++;
+                        }
+                        break;
+                    case 1:
+                        if (angles.firstAngle <= 90) { //turning to the left is positive turning to the right is negative
+                            mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                            power(0.2, 0.2);
+                        }else {
+                            mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            counter++;
+                        }
+                        break;
+                    case 2:
+                        setTargetPos(-TicksPerInch * 12, TicksPerInch * 12);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
+//                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
+//                    mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//                    power(0.2, -0.2);
+//                }
+//                setTargetPos(-TicksPerInch * 10, TicksPerInch * 10);
+//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                mode(DcMotor.RunMode.RUN_TO_POSITION);
                 break;
             case 2:
-//
                 setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
+//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
                 mode(DcMotor.RunMode.RUN_TO_POSITION);
                 power(0.2, 0.2);
                 break;
+            case 3:
+                switch (counter) {
+                    case 0:
+                        setTargetPos(-TicksPerInch * 16, TicksPerInch * 16);
+//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        power(0.2, 0.2);
+                        if (6 <= (runtime.seconds())) {
+                            counter++;
+                        }
+                        break;
+                    case 1:
+                        if (angles.firstAngle >= -90) { //turning to the left is positive turning to the right is negative
+                            mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                            power(-0.2, -0.2);
+                        } else {
+                            mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                            counter++;
+                        }
+                        break;
+                    case 2:
+                        setTargetPos(-TicksPerInch * 13, TicksPerInch * 13);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+                break;
         }
+
 //        driveStraightForInches(12);
 
         telemetry.addData("going to middle", middle);
@@ -257,11 +308,14 @@ public class TensorFlowDetection extends OpMode {
         telemetry.addData("going to right", right);
         telemetry.addData("Right Encoder", rightFront.getCurrentPosition());
         telemetry.addData("Left Encoder", leftFront.getCurrentPosition());
+        telemetry.addData("Left Power", leftBack.getPower());
+        telemetry.addData("Right power", rightFront.getPower());
         telemetry.addData("runtime", runtime.toString());
         telemetry.addData("heading", angles.firstAngle);
         telemetry.addData("pitch", angles.secondAngle);
         telemetry.addData("roll", angles.thirdAngle);
         telemetry.addData("pos", pos);
+        telemetry.addData("counter",counter);
 //        telemetry.update();
     }
     @Override
