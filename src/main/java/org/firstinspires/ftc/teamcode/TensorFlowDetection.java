@@ -72,8 +72,10 @@ public class TensorFlowDetection extends OpMode {
      * Here we assume it's an Asset.    Also see method initTfod() below .1
      */
     private static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotor leftFront = null;
+    private DcMotor leftBack = null;
+    private DcMotor rightFront = null;
+    private DcMotor rightBack = null;
     BNO055IMU imu;
     Orientation angles;
     private ElapsedTime runtime = new ElapsedTime();
@@ -115,10 +117,10 @@ public class TensorFlowDetection extends OpMode {
     private boolean middle = true;
     private boolean left = false;
     private boolean right = false;
-    private double TicksPerRev = 1425.1;
-    private double WheelDiameter = 3.75;
-    private double WheelCircumference = WheelDiameter * Math.PI;
-    private int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
+    private final double TicksPerRev = 1425.1;
+    private final double WheelDiameter = 3.75;
+    private final double WheelCircumference = WheelDiameter * Math.PI;
+    private final int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
     private int pos = 2;
     @Override
     public void init() {
@@ -142,12 +144,18 @@ public class TensorFlowDetection extends OpMode {
             // (typically 16/9).
             tfod.setZoom(1.0, 16.0/9.0);
         }
-        leftDrive = hardwareMap.get(DcMotor.class, "left_motor");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_motor");
-        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFront = hardwareMap.get(DcMotor.class, "left_FrontDrive");
+        leftBack = hardwareMap.get(DcMotor.class, "left_BackDrive");
+        rightFront = hardwareMap.get(DcMotor.class, "right_FrontDrive");
+        rightBack = hardwareMap.get(DcMotor.class, "right_BackDrive");
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode((DcMotor.RunMode.STOP_AND_RESET_ENCODER));
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.loggingEnabled = true;
         parameters.loggingTag     = "IMU";
@@ -159,7 +167,6 @@ public class TensorFlowDetection extends OpMode {
 
     @Override
     public void init_loop() {
-
         if (tfod != null) {
             // getUpdatedRecognitions() will return null if no new information is available since
             // the last time that call was made.
@@ -185,7 +192,6 @@ public class TensorFlowDetection extends OpMode {
                         right = true;
                         pos = 3;
                     }
-
                 }
             }
         }
@@ -230,23 +236,32 @@ public class TensorFlowDetection extends OpMode {
 //        }
         switch (pos){
             case 1:
-
+                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
+                mode(DcMotor.RunMode.RUN_TO_POSITION);
+                power(0.2, 0.2);
+                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
+                    power(0.2, -0.2);
+                }
+                break;
+            case 2:
+//
+                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
+                mode(DcMotor.RunMode.RUN_TO_POSITION);
+                power(0.2, 0.2);
                 break;
         }
-        driveStraightForInches(12);
-        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftDrive.setPower(0.2);
-        rightDrive.setPower(0.2);
+//        driveStraightForInches(12);
+
         telemetry.addData("going to middle", middle);
         telemetry.addData("going to left", left);
         telemetry.addData("going to right", right);
-        telemetry.addData("Right Encoder", rightDrive.getCurrentPosition());
-        telemetry.addData("Left Encoder", leftDrive.getCurrentPosition());
+        telemetry.addData("Right Encoder", rightFront.getCurrentPosition());
+        telemetry.addData("Left Encoder", leftFront.getCurrentPosition());
         telemetry.addData("runtime", runtime.toString());
         telemetry.addData("heading", angles.firstAngle);
         telemetry.addData("pitch", angles.secondAngle);
         telemetry.addData("roll", angles.thirdAngle);
+        telemetry.addData("pos", pos);
 //        telemetry.update();
     }
     @Override
@@ -283,12 +298,35 @@ public class TensorFlowDetection extends OpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
+    private void setTargetPos(int left, int right){
+        leftFront.setTargetPosition(left);
+        leftBack.setTargetPosition(left);
+        rightBack.setTargetPosition(right);
+        rightFront.setTargetPosition(right);
+        telemetry.addData("Target Pos of left encoders", left);
+        telemetry.addData("target Pos of right encoders", right);
+    }
 
     private void driveStraightForInches(double inches){
-        leftDrive.setTargetPosition((int)(TicksPerInch * inches));
-        rightDrive.setTargetPosition((int)(TicksPerInch * inches));
-        telemetry.addData("Target position of encoders", TicksPerInch * inches);
+        leftFront.setTargetPosition((int)(TicksPerInch * inches));
+        leftBack.setTargetPosition((int)(TicksPerInch * inches));
+        rightFront.setTargetPosition((int)(TicksPerInch * inches));
+        rightBack.setTargetPosition((int)(TicksPerInch * inches));
+//        telemetry.addData("Target position of encoders", TicksPerInch * inches);
     }
+    private void power(double left, double right){
+        leftFront.setPower(left);
+        leftBack.setPower(left);
+        rightBack.setPower(right);
+        rightFront.setPower(right);
+    }
+    private void mode(DcMotor.RunMode mode){
+        leftFront.setMode(mode);
+        leftBack.setMode(mode);
+        rightFront.setMode(mode);
+        rightBack.setMode(mode);
+    }
+
     //    @Override
 //    public void runOpMode() {
 //        // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
