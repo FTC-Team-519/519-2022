@@ -214,19 +214,8 @@ public class TeleopFTC2022 extends OpMode {
         }
         rightBumpPreviouslyPressed = gamepad1.right_bumper;
 
-        // lift up/down
-        if (gamepad2.right_bumper) {
-            liftMotorPower = 1.0;
-        }
-        if (gamepad2.left_bumper) {
-            if (liftMotor.getCurrentPosition() <= 0){
-                liftMotorPower=0.0;
-            }else{
-                liftMotorPower=-1.0;
-            }
-        }
 
-            // claw open/close
+        // claw open/close
         if (gamepad2.circle) {
             clawPos = OPEN_CLAW_POS;
             clawPos = Math.min(clawPos, 1.0);
@@ -249,23 +238,35 @@ public class TeleopFTC2022 extends OpMode {
             armPos = Math.max(armPos, 0.0);
         }
 
+        // lift up/down
+        if (gamepad2.right_bumper) {
+            liftMotorPower = 1.0;
+        }
+        if (gamepad2.left_bumper) {
+            if (liftMotor.getCurrentPosition() <= 0){
+                liftMotorPower=0.0;
+            }else{
+                liftMotorPower=-1.0;
+            }
+        }
 
         // lift motor presets
-//        if (gamepad2.a) {
-//            while(liftMotor.getCurrentPosition()<1750){
-//                liftMotor.setPower(1.0);
-//            }
-//        }
-//        if (gamepad2.left_trigger >= 0.75) {
-//            liftMotor.setTargetPosition(3700);
-//            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//            liftMotor.setPower(1.0);
-//        }
-//        if (gamepad2.right_trigger >= 0.75) {
-//            liftMotor.setTargetPosition(5528);
-//            liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//            liftMotor.setPower(1.0);
-//        }
+        if (gamepad2.a) {
+            while(liftMotor.getCurrentPosition()<1750){
+                liftMotor.setPower(1.0);
+            }
+        }
+        if (gamepad2.left_trigger >= 0.75) {
+            while (liftMotor.getCurrentPosition() < 3700) {
+                liftMotor.setPower(1.0);
+            }
+        }
+        if (gamepad2.right_trigger >= 0.75) {
+            while (liftMotor.getCurrentPosition() < 5528){
+                liftMotor.setPower(1.0);
+            }
+        }
+
 
         leftClawServo.setPosition(clawPos);
         rightClawServo.setPosition(clawPos);
@@ -277,12 +278,12 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive.setPower(leftBackPower / denom);
         rightBackDrive.setPower(rightBackPower / denom);
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
+        telemetry.addData("liftMotor: ", liftMotor.getCurrentPosition());
         telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
         telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
         //telemetry.addData("Arm Servo Position", armServo.getPosition());
         //telemetry.addData("Right Trigger", "Servo" + gamepad1.right_trigger);
         telemetry.addData("pos value", clawPos);
         telemetry.addData("Slow Mode", slow);
-        }
     }
+}

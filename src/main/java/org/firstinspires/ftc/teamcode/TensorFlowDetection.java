@@ -259,6 +259,7 @@ public class TensorFlowDetection extends OpMode {
                     case 2:
                         setTargetPos(-TicksPerInch * 12, TicksPerInch * 12);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        break;
                 }
 //                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
 //                    mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
