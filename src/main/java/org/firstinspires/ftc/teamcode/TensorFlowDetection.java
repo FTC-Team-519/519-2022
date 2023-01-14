@@ -101,7 +101,7 @@ public class TensorFlowDetection extends OpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY = "AVjWNQH/////AAABmfTAg894fEL/rQj8b+u8l7Qw34HtrMgOnmf6xTlvK+Afn5EmrjzwTJ7/aTw0eGzNWdd0u+f1Rv8T8gH+kytJmYIPDIKOiLHuHJvMc0lwvEgKfiE33bZAoGW/ZoX2kyIHVWgr9I2yNKtE/SS4Ik4imJIJbe4QwFBMed02dz05R+j6Oi3wW4CutaknKYb5BH68RviV8b98QDV6FUwLa0u+biIkAEciicgHoQuDWCA2hrByaIEEm4XgXCF0H37hyv0Ra7SZsm6YMcTC2mNSIblMD77iL7MFyUoFdoQnykv+KJiNelhdjfswwCQWszNLYpqzwo56nAimSAr8s4C7Cub1GAlYVfq5XnG/7ZWH0oSg1x8T";
-            //" -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
+    //" -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
 
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
@@ -120,9 +120,10 @@ public class TensorFlowDetection extends OpMode {
     private final double TicksPerRev = 1425.1;
     private final double WheelDiameter = 3.75;
     private final double WheelCircumference = WheelDiameter * Math.PI;
-    private final int TicksPerInch = (int)(TicksPerRev / WheelCircumference);
+    private final int TicksPerInch = (int) (TicksPerRev / WheelCircumference);
     private int pos = 2;
     private int counter = 0;
+
     @Override
     public void init() {
         // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
@@ -143,7 +144,7 @@ public class TensorFlowDetection extends OpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.0, 16.0/9.0);
+            tfod.setZoom(1.0, 16.0 / 9.0);
         }
         leftFront = hardwareMap.get(DcMotor.class, "left_FrontDrive");
         leftBack = hardwareMap.get(DcMotor.class, "left_BackDrive");
@@ -159,10 +160,10 @@ public class TensorFlowDetection extends OpMode {
         rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.loggingEnabled = true;
-        parameters.loggingTag     = "IMU";
+        parameters.loggingTag = "IMU";
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
     }
 
 
@@ -182,22 +183,20 @@ public class TensorFlowDetection extends OpMode {
                     double width = Math.abs(recognition.getRight() - recognition.getLeft());
                     double height = Math.abs(recognition.getTop() - recognition.getBottom());
                     telemetry.addData("image", recognition.getLabel());
-                    if (recognition.getLabel().equals("1 Bolt")){
+                    if (recognition.getLabel().equals("1 Bolt")) {
                         left = true;
                         middle = false;
                         right = false;
                         pos = 1;
-                    }else if (recognition.getLabel().equals("3 Panel")){
+                    } else if (recognition.getLabel().equals("3 Panel")) {
                         left = false;
                         middle = false;
-                       right = true;
+                        right = true;
                         pos = 3;
                     }
                 }
             }
         }
-//        count++;
-//        telemetry.addData("number of time gone through", count);
     }
 
     @Override
@@ -208,39 +207,12 @@ public class TensorFlowDetection extends OpMode {
 
     @Override
     public void loop() {
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-//        if (tfod != null) {
-//            // getUpdatedRecognitions() will return null if no new information is available since
-//            // the last time that call was made.
-//            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-//            if (updatedRecognitions != null) {
-//                telemetry.addData("# Objects Detected", updatedRecognitions.size());
-//                // step through the list of recognitions and display image position/size information for each one
-//                // Note: "Image number" refers to the randomized image orientation/number
-//                for (Recognition recognition : updatedRecognitions) {
-//                    double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
-//                    double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
-//                    double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
-//                    double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
-//
-//                    telemetry.addData(""," ");
-//                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
-//                    telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
-//                    telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
-//                }
-
-//                telemetry.addData("angle 1", angles.firstAngle);
-//                telemetry.addData("angle 2", angles.secondAngle);
-//                telemetry.addData("angle 3", angles.thirdAngle);
-
-//            }
-//        }
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         switch (pos) {
             case 1:
                 switch (counter) {
                     case 0:
                         setTargetPos(-TicksPerInch * 15, TicksPerInch * 15);
-//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2, 0.2);
                         if (6 <= (runtime.seconds())) {
@@ -251,7 +223,7 @@ public class TensorFlowDetection extends OpMode {
                         if (angles.firstAngle <= 90) { //turning to the left is positive turning to the right is negative
                             mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                             power(0.2, 0.2);
-                        }else {
+                        } else {
                             mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                             counter++;
                         }
@@ -260,17 +232,9 @@ public class TensorFlowDetection extends OpMode {
                         setTargetPos(-TicksPerInch * 12, TicksPerInch * 12);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
-//                if (angles.firstAngle <= 90){ //turning to the left is positive turning to the right is negative
-//                    mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//                    power(0.2, -0.2);
-//                }
-//                setTargetPos(-TicksPerInch * 10, TicksPerInch * 10);
-//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
-//                mode(DcMotor.RunMode.RUN_TO_POSITION);
                 break;
             case 2:
                 setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
-//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
                 mode(DcMotor.RunMode.RUN_TO_POSITION);
                 power(0.2, 0.2);
                 break;
@@ -278,7 +242,6 @@ public class TensorFlowDetection extends OpMode {
                 switch (counter) {
                     case 0:
                         setTargetPos(-TicksPerInch * 16, TicksPerInch * 16);
-//                mode(DcMotor.RunMode.RUN_USING_ENCODER);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2, 0.2);
                         if (6 <= (runtime.seconds())) {
@@ -301,8 +264,6 @@ public class TensorFlowDetection extends OpMode {
                 break;
         }
 
-//        driveStraightForInches(12);
-
         telemetry.addData("going to middle", middle);
         telemetry.addData("going to left", left);
         telemetry.addData("going to right", right);
@@ -315,13 +276,15 @@ public class TensorFlowDetection extends OpMode {
         telemetry.addData("pitch", angles.secondAngle);
         telemetry.addData("roll", angles.thirdAngle);
         telemetry.addData("pos", pos);
-        telemetry.addData("counter",counter);
+        telemetry.addData("counter", counter);
 //        telemetry.update();
     }
+
     @Override
     public void stop() {
 
     }
+
     private void initVuforia() {
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
@@ -352,7 +315,8 @@ public class TensorFlowDetection extends OpMode {
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABELS);
         // tfod.loadModelFromFile(TFOD_MODEL_FILE, LABELS);
     }
-    private void setTargetPos(int left, int right){
+
+    private void setTargetPos(int left, int right) {
         leftFront.setTargetPosition(left);
         leftBack.setTargetPosition(left);
         rightBack.setTargetPosition(right);
@@ -361,100 +325,25 @@ public class TensorFlowDetection extends OpMode {
         telemetry.addData("target Pos of right encoders", right);
     }
 
-    private void driveStraightForInches(double inches){
-        leftFront.setTargetPosition((int)(TicksPerInch * inches));
-        leftBack.setTargetPosition((int)(TicksPerInch * inches));
-        rightFront.setTargetPosition((int)(TicksPerInch * inches));
-        rightBack.setTargetPosition((int)(TicksPerInch * inches));
+    private void driveStraightForInches(double inches) {
+        leftFront.setTargetPosition((int) (TicksPerInch * inches));
+        leftBack.setTargetPosition((int) (TicksPerInch * inches));
+        rightFront.setTargetPosition((int) (TicksPerInch * inches));
+        rightBack.setTargetPosition((int) (TicksPerInch * inches));
 //        telemetry.addData("Target position of encoders", TicksPerInch * inches);
     }
-    private void power(double left, double right){
+
+    private void power(double left, double right) {
         leftFront.setPower(left);
         leftBack.setPower(left);
         rightBack.setPower(right);
         rightFront.setPower(right);
     }
-    private void mode(DcMotor.RunMode mode){
+
+    private void mode(DcMotor.RunMode mode) {
         leftFront.setMode(mode);
         leftBack.setMode(mode);
         rightFront.setMode(mode);
         rightBack.setMode(mode);
     }
-
-    //    @Override
-//    public void runOpMode() {
-//        // The TFObjectDetector uses the camera frames from the VuforiaLocalizer, so we create that
-//        // first.
-//        initVuforia();
-//        initTfod();
-//
-//        /**
-//         * Activate TensorFlow Object Detection before we wait for the start command.
-//         * Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
-//         **/
-//        if (tfod != null) {
-//            tfod.activate();
-//
-//            // The TensorFlow software will scale the input images from the camera to a lower resolution.
-//            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
-//            // If your target is at distance greater than 50 cm (20") you can increase the magnification value
-//            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
-//            // should be set to the value of the images used to create the TensorFlow Object Detection model
-//            // (typically 16/9).
-//            tfod.setZoom(1.0, 16.0/9.0);
-//        }
-//        leftDrive = hardwareMap.get(DcMotor.class, "left_motor");
-//        rightDrive = hardwareMap.get(DcMotor.class, "right_motor");
-//        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-//        parameters.loggingEnabled = true;
-//        parameters.loggingTag = "IMU";
-//        imu = hardwareMap.get(BNO055IMU.class, "imu");
-//        imu.initialize(parameters);
-//        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-//
-//        /** Wait for the game to begin */
-//        telemetry.addData(">", "Press Play to start op mode");
-//        telemetry.update();
-//        waitForStart();
-//
-//        if (opModeIsActive()) {
-//            while (opModeIsActive()) {
-//                if (tfod != null) {
-//                    // getUpdatedRecognitions() will return null if no new information is available since
-//                    // the last time that call was made.
-//                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-//                    if (updatedRecognitions != null) {
-//                        telemetry.addData("# Objects Detected", updatedRecognitions.size());
-//
-//                        // step through the list of recognitions and display image position/size information for each one
-//                        // Note: "Image number" refers to the randomized image orientation/number
-//                        for (Recognition recognition : updatedRecognitions) {
-//                            double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
-//                            double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
-//                            double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
-//                            double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
-//
-//                            telemetry.addData(""," ");
-//                            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );
-//                            telemetry.addData("- Position (Row/Col)","%.0f / %.0f", row, col);
-//                            telemetry.addData("- Size (Width/Height)","%.0f / %.0f", width, height);
-//                        }
-////                        telemetry.addData("angle 1", angles.firstAngle);
-////                        telemetry.addData("angle 2", angles.secondAngle);
-////                        telemetry.addData("angle 3", angles.thirdAngle);
-////                        telemetry.update();
-//                    }
-//                }
-//                telemetry.addData("angle 1", angles.firstAngle);
-//                telemetry.addData("angle 2", angles.secondAngle);
-//                telemetry.addData("angle 3", angles.thirdAngle);
-//                telemetry.update();
-//            }
-//        }
-//    }
-//
-//    /**
-//     * Initialize the Vuforia localization engine.
-//     */
 }
