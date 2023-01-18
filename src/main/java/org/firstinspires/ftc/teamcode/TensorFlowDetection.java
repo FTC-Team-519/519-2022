@@ -34,6 +34,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 //import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -76,6 +77,10 @@ public class TensorFlowDetection extends OpMode {
     private DcMotor leftBack = null;
     private DcMotor rightFront = null;
     private DcMotor rightBack = null;
+    private DcMotor liftMotor = null;
+    private Servo armServo = null;
+    private Servo leftClawServo = null;
+    private Servo rightClawServo = null;
     BNO055IMU imu;
     Orientation angles;
     private ElapsedTime runtime = new ElapsedTime();
@@ -121,6 +126,8 @@ public class TensorFlowDetection extends OpMode {
     private final double WheelDiameter = 3.75;
     private final double WheelCircumference = WheelDiameter * Math.PI;
     private final int TicksPerInch = (int) (TicksPerRev / WheelCircumference);
+    private static final double OPEN_CLAW_POS = 0.74;
+    private static final double CLOSED_CLAW_POS = 0.60;
     private int pos = 2;
     private int counter = 0;
 
@@ -150,14 +157,30 @@ public class TensorFlowDetection extends OpMode {
         leftBack = hardwareMap.get(DcMotor.class, "left_BackDrive");
         rightFront = hardwareMap.get(DcMotor.class, "right_FrontDrive");
         rightBack = hardwareMap.get(DcMotor.class, "right_BackDrive");
+        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+        armServo = hardwareMap.get(Servo.class, "armServo");
+        leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
+        rightClawServo = hardwareMap.get(Servo.class, "rightClawServo");
+
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode((DcMotor.RunMode.STOP_AND_RESET_ENCODER));
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
+        rightBack.setDirection(DcMotor.Direction.FORWARD);
+        rightClawServo.setDirection(Servo.Direction.REVERSE);
+        armServo.setDirection(Servo.Direction.REVERSE);
+
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
@@ -212,7 +235,7 @@ public class TensorFlowDetection extends OpMode {
             case 1:
                 switch (counter) {
                     case 0:
-                        setTargetPos(-TicksPerInch * 15, TicksPerInch * 15);
+                        setTargetPos(3300, 3300);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2, 0.2);
                         if (6 <= (runtime.seconds())) {
@@ -234,14 +257,16 @@ public class TensorFlowDetection extends OpMode {
                 }
                 break;
             case 2:
-                setTargetPos(-TicksPerInch * 24, TicksPerInch * 24);
+                setTargetPos(3300, 3300);
                 mode(DcMotor.RunMode.RUN_TO_POSITION);
                 power(0.2, 0.2);
+//                strafeRight(1000);
+//                power(0.2,0.2);
                 break;
             case 3:
                 switch (counter) {
                     case 0:
-                        setTargetPos(-TicksPerInch * 16, TicksPerInch * 16);
+                        setTargetPos(TicksPerInch * 18, TicksPerInch * 18);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2, 0.2);
                         if (6 <= (runtime.seconds())) {
@@ -249,17 +274,17 @@ public class TensorFlowDetection extends OpMode {
                         }
                         break;
                     case 1:
-                        if (angles.firstAngle >= -90) { //turning to the left is positive turning to the right is negative
-                            mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                            power(-0.2, -0.2);
-                        } else {
-                            mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                            counter++;
-                        }
+//                        if (angles.firstAngle >= -90) { //turning to the left is positive turning to the right is negative
+//                            mode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//                            straight(-0.2, -0.2);
+//                        } else {
+//                            mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                            counter++;
+//                        }
                         break;
                     case 2:
-                        setTargetPos(-TicksPerInch * 13, TicksPerInch * 13);
-                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+//                        setTargetPos(-TicksPerInch * 13, TicksPerInch * 13);
+//                        mode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
                 break;
         }
@@ -345,5 +370,21 @@ public class TensorFlowDetection extends OpMode {
         leftBack.setMode(mode);
         rightFront.setMode(mode);
         rightBack.setMode(mode);
+    }
+
+    private void strafeLeft(int value){
+        leftFront.setTargetPosition(-value);
+        leftBack.setTargetPosition(value);
+        rightFront.setTargetPosition(value);
+        rightBack.setTargetPosition(-value);
+        mode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void strafeRight(int value){
+        leftFront.setTargetPosition(value);
+        leftBack.setTargetPosition(-value);
+        rightFront.setTargetPosition(-value);
+        rightBack.setTargetPosition(value);
+        mode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 }

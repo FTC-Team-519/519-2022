@@ -158,8 +158,7 @@ public class TeleopFTC2022 extends OpMode {
         rightClawServo.setDirection(Servo.Direction.REVERSE);
         armServo.setDirection(Servo.Direction.REVERSE);
 
-        clawPos = OPEN_CLAW_POS;
-        armPos = backArmPos;
+
         presetMode = false;
         targetEncoderValue = DEFAULT_PRESET_VALUE;
         stallPos = STALL_LOW;
@@ -178,6 +177,8 @@ public class TeleopFTC2022 extends OpMode {
      */
     @Override
     public void start() {
+        clawPos = OPEN_CLAW_POS;
+        armPos = backArmPos;
         runtime.reset();
     }
 
@@ -326,6 +327,8 @@ public class TeleopFTC2022 extends OpMode {
         rightBackDrive.setPower(rightBackPower / denom);
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Status", "liftMotor: " + liftMotor.getCurrentPosition());
+        telemetry.addData("Right Motor Encoder", rightBackDrive.getCurrentPosition());
+        telemetry.addData("Left Motor Encoder", leftBackDrive.getCurrentPosition());
         telemetry.addData("leftClawServo", "Position" + leftClawServo.getPosition());
         telemetry.addData("rightClawServo", "Position" + rightClawServo.getPosition());
         //telemetry.addData("Arm Servo Position", armServo.getPosition());
