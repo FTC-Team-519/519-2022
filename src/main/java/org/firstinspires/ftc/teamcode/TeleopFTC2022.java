@@ -119,6 +119,10 @@ public class TeleopFTC2022 extends OpMode {
         leftBackDrive = hardwareMap.get(DcMotor.class, "left_BackDrive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_FrontDrive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_BackDrive");
+//        leftFrontDrive = hardwareMap.get(DcMotor.class, "right_BackDrive");
+//        leftBackDrive = hardwareMap.get(DcMotor.class, "right_FrontDrive");
+//        rightFrontDrive = hardwareMap.get(DcMotor.class, "left_BackDrive");
+//        rightBackDrive = hardwareMap.get(DcMotor.class, "left_FrontDrive");
         liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
         armServo = hardwareMap.get(Servo.class, "armServo");
         leftClawServo = hardwareMap.get(Servo.class, "leftClawServo");
@@ -260,19 +264,29 @@ public class TeleopFTC2022 extends OpMode {
 
 
         // lift up/down
+        // up
         if (gamepad2.right_bumper) {
             presetMode = false;
             liftMotorPower = 1.0;
-        }
-
-        if (gamepad2.left_bumper) {
+        } else if (gamepad2.left_bumper) { // down
             presetMode = false;
-            if (liftMotor.getCurrentPosition() <= 0){
+            if (liftMotor.getCurrentPosition() <= 0 ){
                 liftMotorPower=0.0;
             }else{
                 liftMotorPower=-1.0;
             }
+        }else if (!presetMode){ //move without protections
+            liftMotorPower = -gamepad2.right_stick_y;
         }
+
+        // lift encoder reset
+        if (gamepad2.y){
+            liftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            liftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
+
+
 
         // lift motor presets
         if (gamepad2.a) {

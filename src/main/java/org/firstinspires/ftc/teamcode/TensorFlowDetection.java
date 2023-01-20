@@ -130,6 +130,9 @@ public class TensorFlowDetection extends OpMode {
     private static final double CLOSED_CLAW_POS = 0.60;
     private int pos = 2;
     private int counter = 0;
+    private double armPos = 0.5;
+    private double backArmPos = 0.0;
+    private double frontArmPos = .950;
 
     @Override
     public void init() {
@@ -225,6 +228,7 @@ public class TensorFlowDetection extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        armPos = backArmPos;
     }
 
 
@@ -257,11 +261,88 @@ public class TensorFlowDetection extends OpMode {
                 }
                 break;
             case 2:
-                setTargetPos(3300, 3300);
-                mode(DcMotor.RunMode.RUN_TO_POSITION);
-                power(0.2, 0.2);
+                switch (counter) {
+                    case 0:
+                        arm(backArmPos);
+                        claw(CLOSED_CLAW_POS);
+                        if (runtime.seconds() > 2) {
+                            runtime.reset();
+                            counter++;
+                        }
+                        break;
+                    case 1:
+                        liftMotor.setTargetPosition(1200);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setPower(1.0);
+                        if (runtime.seconds() > 2) {
+                            runtime.reset();
+                            counter++;
+                        }
+                        break;
+                    case 2:
+                        setTargetPos(3300, 3300);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        power(0.2, 0.2);
+                        if (runtime.seconds() > 8){
+                            runtime.reset();
+                            counter++;
+                        }
+                        break;
+                    case 3:
+                        mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        counter++;
+                        break;
+                    case 4:
+                        strafeRight(900, 0.2);
+                        if (runtime.seconds() > 2){
+                            runtime.reset();
+                            counter++;
+                        }
+                        break;
+                    case 5:
+                        mode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        mode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        counter++;
+                        break;
+                    case 6:
+                        liftMotor.setTargetPosition(5300);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setPower(1.0);
+                        runtime.reset();
+                        counter++;
+                    case 7:
+                        setTargetPos(-470, -470);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        if (runtime.seconds() > 1){
+                            runtime.reset();
+                            counter++;
+                        }
+                        break;
+                    case 8:
+                        liftMotor.setTargetPosition(1200);
+                        liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        liftMotor.setPower(1.0);
+                        if (runtime.seconds() > 1){
+                            runtime.reset();
+                            counter++;
+                        }
+                    case 9:
+                        claw(OPEN_CLAW_POS);
+                        runtime.reset();
+                        counter++;
+                    case 10:
+                        setTargetPos(470, 470);
+                        mode(DcMotor.RunMode.RUN_TO_POSITION);
+                        power(0.2,0.2);
+                        if (runtime.seconds() > 1){
+                            runtime.reset();
+                            counter++;
+                        }
+                    case 11:
+                        strafeLeft(1000);
 //                strafeRight(1000);
 //                power(0.2,0.2);
+                }
                 break;
             case 3:
                 switch (counter) {
@@ -298,8 +379,7 @@ public class TensorFlowDetection extends OpMode {
         telemetry.addData("Right power", rightFront.getPower());
         telemetry.addData("runtime", runtime.toString());
         telemetry.addData("heading", angles.firstAngle);
-        telemetry.addData("pitch", angles.secondAngle);
-        telemetry.addData("roll", angles.thirdAngle);
+        telemetry.addData("claw pos", leftClawServo.getPosition());
         telemetry.addData("pos", pos);
         telemetry.addData("counter", counter);
 //        telemetry.update();
@@ -380,11 +460,20 @@ public class TensorFlowDetection extends OpMode {
         mode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    private void strafeRight(int value){
+    private void strafeRight(int value, double power){
         leftFront.setTargetPosition(value);
         leftBack.setTargetPosition(-value);
         rightFront.setTargetPosition(-value);
         rightBack.setTargetPosition(value);
+        power(power, power);
         mode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void claw(double clawPos){
+        leftClawServo.setPosition(clawPos);
+        rightClawServo.setPosition(clawPos);
+    }
+    private void arm(double armPosition){
+        armServo.setPosition(armPosition);
     }
 }
