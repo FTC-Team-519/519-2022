@@ -31,21 +31,15 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.*;
-//import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
@@ -61,9 +55,9 @@ import java.util.List;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@Autonomous(name = "ObjectDetection", group = "Iterative Opmode")
-
-public class TensorFlowDetection extends OpMode {
+@Autonomous(name = "AutoHighLeft", group = "Iterative Opmode")
+@Disabled
+public class AutoHighLeft extends OpMode {
 
     /*
      * Specify the source for the Tensor Flow Model.
@@ -269,7 +263,7 @@ public class TensorFlowDetection extends OpMode {
                         counter++;
                         break;
                     case 4:
-                        strafeRight(800, 0.4);
+                        strafeRight(900, 0.4);
                         if (runtime.seconds() > 2){
                             runtime.reset();
                             counter++;
@@ -331,7 +325,7 @@ public class TensorFlowDetection extends OpMode {
                         }
                         break;
                     case 12:
-                        strafeLeft(2800);
+                        strafeLeft(2600);
                         break;
                 }
                 break;
@@ -358,7 +352,7 @@ public class TensorFlowDetection extends OpMode {
                         setTargetPos(3300, 3300);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.5, 0.5);
-                        if (runtime.seconds() > 5){
+                        if (runtime.seconds() > 4){
                             runtime.reset();
                             counter++;
                         }
@@ -368,7 +362,7 @@ public class TensorFlowDetection extends OpMode {
                         counter++;
                         break;
                     case 4:
-                        strafeRight(800, 0.4);
+                        strafeRight(900, 0.4);
                         if (runtime.seconds() > 2){
                             runtime.reset();
                             counter++;
@@ -381,11 +375,10 @@ public class TensorFlowDetection extends OpMode {
                         counter++;
                         break;
                     case 6:
-                        liftMotor.setTargetPosition(5500);
+                        liftMotor.setTargetPosition(7000);
                         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                         liftMotor.setPower(1.0);
-                        if (runtime.seconds() > 4) {
-
+                        if (runtime.seconds() > 6) {
                             counter++;
                         }
                         break;
@@ -397,10 +390,10 @@ public class TensorFlowDetection extends OpMode {
 
                         break;
                     case 8:
-                        setTargetPos(-470, -470);
+                        setTargetPos(470, 470);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2,0.2);
-                        if (runtime.seconds() > 2){
+                        if (runtime.seconds() > 1){
                             runtime.reset();
                             counter++;
                         }
@@ -420,7 +413,7 @@ public class TensorFlowDetection extends OpMode {
                         counter++;
                         break;
                     case 11:
-                        setTargetPos(470, 470);
+                        setTargetPos(-470, -470);
                         mode(DcMotor.RunMode.RUN_TO_POSITION);
                         power(0.2,0.2);
                         if (runtime.seconds() > 1){
@@ -467,7 +460,7 @@ public class TensorFlowDetection extends OpMode {
                         counter++;
                         break;
                     case 4:
-                        strafeRight(800, 0.4);
+                        strafeRight(900, 0.4);
                         if (runtime.seconds() > 2){
                             runtime.reset();
                             counter++;
@@ -638,6 +631,7 @@ public class TensorFlowDetection extends OpMode {
         leftClawServo.setPosition(clawPos);
         rightClawServo.setPosition(clawPos);
     }
+
     private void arm(double armPosition){
         armServo.setPosition(armPosition);
     }
